@@ -1,8 +1,6 @@
 name: ci-and-cd-to-cloudrun-with-postgres
-# This workflow builds a Docker image for a Backstage application, 
-# pushes it to Google Artifact Registry, and deploys it to Google Cloud Run.
-#   #   url: https://example.com
-#   #   target: 
+# This workflow runs a set of yarn commands to compile, test and build a backstage application 
+
 on:
   push:
     branches: [ "main" ]
@@ -34,4 +32,4 @@ jobs:
 
     
       - name: Build the application
-        run: yarn yarn build:all
+        run: yarn build:all
