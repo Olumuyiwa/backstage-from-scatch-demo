@@ -1,0 +1,37 @@
+name: ci-and-cd-to-cloudrun-with-postgres
+# This workflow builds a Docker image for a Backstage application, 
+# pushes it to Google Artifact Registry, and deploys it to Google Cloud Run.
+#   #   url: https://example.com
+#   #   target: 
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      
+      - name: Install Dependencies
+        run: yarn install  
+
+      - name: Compile TypeScript
+        run: yarn tsc
+
+
+      - name: Run Unit Tests
+        run: yarn test:all
+
+    
+      - name: Build the application
+        run: yarn yarn build:all
