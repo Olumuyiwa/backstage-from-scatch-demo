@@ -33,3 +33,86 @@ jobs:
     
       - name: Build the application
         run: yarn build:all
+
+
+# =========================
+# CD — DEPLOY TO GCP VM
+# =========================
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Create SSH key from GitHub Secret
+      - name: Create SSH key
+        run: |
+          echo "${{ secrets.GCP_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      # Copy project to VM
+      - name: Copy Backstage project to VM
+        run: |
+          scp -r -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          . \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }}:/home/${{ secrets.GCP_SSH_USERNAME }}/backstage
+
+      # Prepare VM (Node 24 + Yarn)
+      - name: Prepare VM environment
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+            echo "Stopping existing Backstage..."
+            pkill -f backstage || true
+
+            echo "Updating packages..."
+            sudo apt-get update
+
+            echo "Installing Node.js 24..."
+            curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+
+            echo "Installing Yarn..."
+            sudo npm install -g yarn
+
+            node -v
+            npm -v
+            yarn -v
+
+          EOF
+
+      # Install + Build on VM
+      - name: Install dependencies and build on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+            cd ~/backstage
+
+            echo "Installing dependencies..."
+            yarn install --frozen-lockfile
+
+            echo "Building Backstage..."
+            yarn build
+
+          EOF
+
+      # Start Backstage
+      - name: Start Backstage application
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+            cd ~/backstage
+
+            echo "Starting Backstage backend..."
+            nohup yarn start-backend > backstage.log 2>&1 &
+
+            echo "Deployment completed."
+
+          EOF
