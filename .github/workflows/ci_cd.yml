@@ -33,10 +33,10 @@ jobs:
     
       - name: Build the application
         run: yarn build:all
-
 # =========================
 # CD — DEPLOY TO GCP VM
 # =========================
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -53,9 +53,9 @@ jobs:
           chmod 600 private_key.pem
 
       # -----------------------------------
-      # CLEAN / BACKUP OLD DEPLOYMENT
+      # CLEAN OLD DEPLOYMENT + FIX PERMISSIONS
       # -----------------------------------
-      - name: Prepare VM (stop + cleanup)
+      - name: Prepare VM
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem \
           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
@@ -63,21 +63,24 @@ jobs:
             echo "Stopping existing Backstage..."
             pkill -f backstage || true
 
-            echo "Backing up old deployment if exists..."
-            if [ -d "~/backstage" ]; then
-              mv ~/backstage ~/backstage_backup_$(date +%s)
-            fi
+            echo "Fixing permissions..."
+            sudo chown -R $USER:$USER ~ || true
+
+            echo "Removing old deployment..."
+            rm -rf ~/backstage
 
           EOF
 
       # -----------------------------------
-      # COPY NEW CODE
+      # COPY NEW CODE (without .git)
       # -----------------------------------
       - name: Copy Backstage project to VM
         run: |
-          scp -r -o StrictHostKeyChecking=no \
-          -i private_key.pem \
-          . \
+          rsync -avz --delete \
+          --exclude=".git" \
+          --exclude="node_modules" \
+          -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+          ./ \
           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }}:/home/${{ secrets.GCP_SSH_USERNAME }}/backstage
 
       # -----------------------------------
@@ -91,20 +94,17 @@ jobs:
             echo "Updating packages..."
             sudo apt-get update
 
-            # Install Node 24 only if missing
             if ! command -v node &> /dev/null; then
               echo "Installing Node.js 24..."
               curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
               sudo apt-get install -y nodejs
             fi
 
-            # Install yarn if missing
             if ! command -v yarn &> /dev/null; then
               sudo npm install -g yarn
             fi
 
             node -v
-            npm -v
             yarn -v
 
           EOF
