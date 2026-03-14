@@ -1,5 +1,8 @@
-name: ci-and-cd-to-cloudrun-with-postgres
+name: ci-cd
 # This workflow runs a set of yarn commands to compile, test and build a backstage application 
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   push:
@@ -70,7 +73,16 @@ jobs:
             rm -rf ~/backstage
 
           EOF
+      - name: Install rsync on VM
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
 
+            echo "Installing rsync..."
+            sudo apt-get update
+            sudo apt-get install -y rsync
+
+          EOF
       # -----------------------------------
       # COPY NEW CODE (without .git)
       # -----------------------------------
