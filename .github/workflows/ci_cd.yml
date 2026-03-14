@@ -37,109 +37,109 @@ jobs:
 # =========================
 # CD — DEPLOY TO GCP VM
 # =========================
-deploy:
-  needs: build
-  runs-on: ubuntu-latest
-  if: github.ref == 'refs/heads/main'
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    # Create SSH key
-    - name: Create SSH key
-      run: |
-        echo "${{ secrets.GCP_SSH_KEY }}" > private_key.pem
-        chmod 600 private_key.pem
+      # Create SSH key
+      - name: Create SSH key
+        run: |
+          echo "${{ secrets.GCP_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
 
-    # -----------------------------------
-    # CLEAN / BACKUP OLD DEPLOYMENT
-    # -----------------------------------
-    - name: Prepare VM (stop + cleanup)
-      run: |
-        ssh -o StrictHostKeyChecking=no -i private_key.pem \
-        ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+      # -----------------------------------
+      # CLEAN / BACKUP OLD DEPLOYMENT
+      # -----------------------------------
+      - name: Prepare VM (stop + cleanup)
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
 
-          echo "Stopping existing Backstage..."
-          pkill -f backstage || true
+            echo "Stopping existing Backstage..."
+            pkill -f backstage || true
 
-          echo "Backing up old deployment if exists..."
-          if [ -d "~/backstage" ]; then
-            mv ~/backstage ~/backstage_backup_$(date +%s)
-          fi
+            echo "Backing up old deployment if exists..."
+            if [ -d "~/backstage" ]; then
+              mv ~/backstage ~/backstage_backup_$(date +%s)
+            fi
 
-        EOF
+          EOF
 
-    # -----------------------------------
-    # COPY NEW CODE
-    # -----------------------------------
-    - name: Copy Backstage project to VM
-      run: |
-        scp -r -o StrictHostKeyChecking=no \
-        -i private_key.pem \
-        . \
-        ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }}:/home/${{ secrets.GCP_SSH_USERNAME }}/backstage
+      # -----------------------------------
+      # COPY NEW CODE
+      # -----------------------------------
+      - name: Copy Backstage project to VM
+        run: |
+          scp -r -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          . \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }}:/home/${{ secrets.GCP_SSH_USERNAME }}/backstage
 
-    # -----------------------------------
-    # INSTALL NODE 24 + YARN
-    # -----------------------------------
-    - name: Prepare VM environment
-      run: |
-        ssh -o StrictHostKeyChecking=no -i private_key.pem \
-        ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+      # -----------------------------------
+      # INSTALL NODE 24 + YARN
+      # -----------------------------------
+      - name: Prepare VM environment
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
 
-          echo "Updating packages..."
-          sudo apt-get update
+            echo "Updating packages..."
+            sudo apt-get update
 
-          # Install Node 24 only if missing
-          if ! command -v node &> /dev/null; then
-            echo "Installing Node.js 24..."
-            curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-          fi
+            # Install Node 24 only if missing
+            if ! command -v node &> /dev/null; then
+              echo "Installing Node.js 24..."
+              curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
 
-          # Install yarn if missing
-          if ! command -v yarn &> /dev/null; then
-            sudo npm install -g yarn
-          fi
+            # Install yarn if missing
+            if ! command -v yarn &> /dev/null; then
+              sudo npm install -g yarn
+            fi
 
-          node -v
-          npm -v
-          yarn -v
+            node -v
+            npm -v
+            yarn -v
 
-        EOF
+          EOF
 
-    # -----------------------------------
-    # INSTALL + BUILD
-    # -----------------------------------
-    - name: Install dependencies and build
-      run: |
-        ssh -o StrictHostKeyChecking=no -i private_key.pem \
-        ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+      # -----------------------------------
+      # INSTALL + BUILD
+      # -----------------------------------
+      - name: Install dependencies and build
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
 
-          cd ~/backstage
+            cd ~/backstage
 
-          echo "Installing dependencies..."
-          yarn install --frozen-lockfile
+            echo "Installing dependencies..."
+            yarn install --frozen-lockfile
 
-          echo "Building Backstage..."
-          yarn build:all
+            echo "Building Backstage..."
+            yarn build:all
 
-        EOF
+          EOF
 
-    # -----------------------------------
-    # START APPLICATION
-    # -----------------------------------
-    - name: Start Backstage
-      run: |
-        ssh -o StrictHostKeyChecking=no -i private_key.pem \
-        ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+      # -----------------------------------
+      # START APPLICATION
+      # -----------------------------------
+      - name: Start Backstage
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem \
+          ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
 
-          cd ~/backstage
+            cd ~/backstage
 
-          echo "Starting Backstage backend..."
-          nohup yarn start-backend > backstage.log 2>&1 &
+            echo "Starting Backstage backend..."
+            nohup yarn start-backend > backstage.log 2>&1 &
 
-          echo "Deployment completed successfully"
+            echo "Deployment completed successfully"
 
-        EOF
+          EOF
