@@ -1,0 +1,118 @@
+# name: ci-and-cd-to-cloudrun-with-postgres
+# # This workflow runs a set of yarn commands to compile, test and build a backstage application 
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Set Up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 24
+      
+#       - name: Install Dependencies
+#         run: yarn install  
+
+#       - name: Compile TypeScript
+#         run: yarn tsc
+
+
+#       - name: Run Unit Tests
+#         run: yarn test:all
+
+    
+#       - name: Build the application
+#         run: yarn build:all
+
+
+# # =========================
+# # CD — DEPLOY TO GCP VM
+# # =========================
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     if: github.ref == 'refs/heads/main'
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       # Create SSH key from GitHub Secret
+#       - name: Create SSH key
+#         run: |
+#           echo "${{ secrets.GCP_SSH_KEY }}" > private_key.pem
+#           chmod 600 private_key.pem
+
+#       # Copy project to VM
+#       - name: Copy Backstage project to VM
+#         run: |
+#           scp -r -o StrictHostKeyChecking=no \
+#           -i private_key.pem \
+#           . \
+#           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }}:/home/${{ secrets.GCP_SSH_USERNAME }}/backstage
+
+#       # Prepare VM (Node 24 + Yarn)
+#       - name: Prepare VM environment
+#         run: |
+#           ssh -o StrictHostKeyChecking=no -i private_key.pem \
+#           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+#             echo "Stopping existing Backstage..."
+#             pkill -f backstage || true
+
+#             echo "Updating packages..."
+#             sudo apt-get update
+
+#             echo "Installing Node.js 24..."
+#             curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+#             sudo apt-get install -y nodejs
+
+#             echo "Installing Yarn..."
+#             sudo npm install -g yarn
+
+#             node -v
+#             npm -v
+#             yarn -v
+
+#           EOF
+
+#       # Install + Build on VM
+#       - name: Install dependencies and build on VM
+#         run: |
+#           ssh -o StrictHostKeyChecking=no -i private_key.pem \
+#           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+#             cd ~/backstage
+
+#             echo "Installing dependencies..."
+#             yarn install 
+
+#             echo "Building Backstage..."
+#             yarn build:all
+
+#           EOF
+
+#       # Start Backstage
+#       - name: Start Backstage application
+#         run: |
+#           ssh -o StrictHostKeyChecking=no -i private_key.pem \
+#           ${{ secrets.GCP_SSH_USERNAME }}@${{ secrets.GCP_INSTANCE_IP }} << 'EOF'
+
+#             cd ~/backstage
+
+#             echo "Starting Backstage backend..."
+#             nohup yarn start > backstage.log 2>&1 &
+
+#             echo "Deployment completed."
+
+#           EOF
