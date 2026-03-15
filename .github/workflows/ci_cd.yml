@@ -150,8 +150,9 @@ jobs:
             cd ~/backstage
 
             echo "Starting Backstage backend..."
-            nohup yarn start --host 0.0.0.0 > backstage.log 2>&1 &
 
+            nohup env HOST=0.0.0.0 yarn start > backstage.log 2>&1 &
+            
             echo "Deployment completed successfully"
 
           EOF
