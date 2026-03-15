@@ -149,6 +149,16 @@ jobs:
 
             cd ~/backstage
 
+            echo "Cleaning up old Backstage processes..."
+            # Kill processes on 3000 and 7007 if they exist
+            # '|| true' ensures the script keeps going if no process is found
+            fuser -k 3000/tcp || true
+            fuser -k 7007/tcp || true
+
+            echo "Updating environment variables..."
+            echo "GITHUB_TOKEN=${{ secrets.MY_GITHUB_TOKEN_OLUMUYIWA }}" > .env
+            echo "HOST=0.0.0.0" >> .env
+
             echo "Starting Backstage backend..."
 
             nohup env HOST=0.0.0.0 yarn start > backstage.log 2>&1 &
