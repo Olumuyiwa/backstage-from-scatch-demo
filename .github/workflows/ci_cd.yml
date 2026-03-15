@@ -141,7 +141,7 @@ jobs:
 
       # -----------------------------------
       # START APPLICATION
-      # -----------------------------------
+      # ----------------------------------- 
       - name: Start Backstage
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem \

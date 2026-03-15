@@ -466,7 +466,7 @@ jobs:
             cd ~/backstage
 
             echo "Starting Backstage backend..."
-            nohup yarn start-backend > backstage.log 2>&1 &
+            nohup yarn start > backstage.log 2>&1 &
 
             echo "Deployment completed."
 
