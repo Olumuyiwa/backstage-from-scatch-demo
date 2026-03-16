@@ -154,9 +154,10 @@ jobs:
             # '|| true' ensures the script keeps going if no process is found
             fuser -k 3000/tcp || true
             fuser -k 7007/tcp || true
+            yarn cache clear
 
             echo "Updating environment variables..."
-            echo "GITHUB_TOKEN=${{ secrets.MY_GITHUB_TOKEN_OLUMUYIWA }}" > .env
+            echo "MY_GITHUB_TOKEN_OLUMUYIWA=${{ secrets.MY_GITHUB_TOKEN_OLUMUYIWA }}" > .env
             echo "HOST=0.0.0.0" >> .env
 
             echo "Starting Backstage backend..."
