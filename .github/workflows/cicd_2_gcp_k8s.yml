@@ -1,14 +1,21 @@
-name: ci-cd to k8s
-# This workflow runs a set of yarn commands to compile, test and build a backstage application 
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+# This workflow runs a set of yarn commands to compile, test and build a backstage application 
+name: ci-cd to k8s
+
+permissions:
+  id-token: write
+  contents: read
 
 on:
   push:
     branches: [ "k8s" ]
   pull_request:
     branches: [ "k8s" ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+
 
 jobs:
   build:
