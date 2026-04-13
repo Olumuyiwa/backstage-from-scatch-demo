@@ -1,0 +1,77 @@
+name: ci-cd to k8s
+# This workflow runs a set of yarn commands to compile, test and build a backstage application 
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [ "k8s" ]
+  pull_request:
+    branches: [ "k8s" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      
+      - name: Install Dependencies
+        run: yarn install  
+
+      - name: Compile TypeScript
+        run: yarn tsc
+
+
+      - name: Run Unit Tests
+        run: yarn test:all
+
+    
+      - name: Build the application
+        run: yarn build:all
+# =========================
+# CD — DEPLOY TO GCP VM
+# =========================
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - run: gcloud auth configure-docker $REGION-docker.pkg.dev
+
+    - name: Build image
+      run: |
+        docker build -t $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
+
+    - name: Push image
+      run: |
+        docker push $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
+
+    - name: Get cluster credentials
+      run: |
+        gcloud container clusters get-credentials \
+        ${{ secrets.GKE_CLUSTER }} \
+        --region ${{ secrets.GKE_REGION }}
+
+    - name: Deploy
+      run: |
+        kubectl set image deployment/backstage backstage=$REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || \
+        kubectl apply -f k8s/
+

@@ -22,7 +22,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends python3 g++ build-essential && \
-    rm -rf /var/lib/apt/lists/*
+    libsqlite3-dev \
+    ca-certificates \
+    curl \
+    rm -rf /var/lib/apt/lists/*  && apt-get clean
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
@@ -44,6 +47,7 @@ WORKDIR /app
 COPY --chown=node:node .yarn ./.yarn
 COPY --chown=node:node .yarnrc.yml ./
 COPY --chown=node:node backstage.json ./
+COPY --chown=node:node package.json ./
 
 # This switches many Node.js dependencies to production mode.
 ENV NODE_ENV=production
