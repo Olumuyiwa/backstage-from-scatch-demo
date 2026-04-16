@@ -48,46 +48,46 @@ jobs:
 # =========================
 
   deploy:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  steps:
-    # Step 1: Checkout the code from the repository
-    - uses: actions/checkout@v4
+    steps:
+      # Step 1: Checkout the code from the repository
+      - uses: actions/checkout@v4
 
-    # Step 2: Authenticate to Google Cloud
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      # Step 2: Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-    # Step 3: Setup Google Cloud SDK
-    - uses: google-github-actions/setup-gcloud@v2
+      # Step 3: Setup Google Cloud SDK
+      - uses: google-github-actions/setup-gcloud@v2
 
-    # Step 4: Configure Docker to use Google Cloud's Container Registry
-    - name: Configure Docker for GCR
-      run: |
-        gcloud auth configure-docker $REGION-docker.pkg.dev
+      # Step 4: Configure Docker to use Google Cloud's Container Registry
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev
 
-    # Step 5: Build the Docker image for your application
-    - name: Build image
-      run: |
-        docker build -t $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
+      # Step 5: Build the Docker image for your application
+      - name: Build image
+        run: |
+          docker build -t $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
 
-    # Step 6: Push the built Docker image to Google Container Registry
-    - name: Push image to GCR
-      run: |
-        docker push $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
+      # Step 6: Push the built Docker image to Google Container Registry
+      - name: Push image to GCR
+        run: |
+          docker push $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
 
-    # Step 7: Get credentials for the GKE cluster to manage deployments
-    - name: Get GKE Cluster credentials
-      run: |
-        gcloud container clusters get-credentials \
-        ${{ secrets.GKE_CLUSTER }} \
-        --region ${{ secrets.GKE_REGION }}
+      # Step 7: Get credentials for the GKE cluster to manage deployments
+      - name: Get GKE Cluster credentials
+        run: |
+          gcloud container clusters get-credentials \
+          ${{ secrets.GKE_CLUSTER }} \
+          --region ${{ secrets.GKE_REGION }}
 
-    # Step 8: Deploy the new Docker image to Kubernetes
-    - name: Deploy to Kubernetes
-      run: |
-        kubectl set image deployment/backstage backstage=$REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || \
-        kubectl apply -f k8s/
+      # Step 8: Deploy the new Docker image to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/backstage backstage=$REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || \
+          kubectl apply -f k8s/
