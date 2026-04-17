@@ -61,6 +61,14 @@ jobs:
       # Step 1: Checkout the code from the repository
       - uses: actions/checkout@v4
 
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      
+      - name: Install Dependencies
+        run: yarn install  
+
       - name: Build the application
         run: yarn build:all
 
