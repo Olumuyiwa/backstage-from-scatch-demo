@@ -79,15 +79,20 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      # Step 3: Install gke-gcloud-auth-plugin
-      - name: Install gke-gcloud-auth-plugin
-        run: |
-          curl -sSL https://dl.google.com/cloudsdk/release/google-cloud-sdk.tar.gz | tar xz -C /tmp && \
-          /tmp/google-cloud-sdk/install.sh -q && \
-          /tmp/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin 
+      # # Step 3: Install gke-gcloud-auth-plugin
+      # - name: Install gke-gcloud-auth-plugin
+      #   run: |
+      #     curl -sSL https://dl.google.com/cloudsdk/release/google-cloud-sdk.tar.gz | tar xz -C /tmp && \
+      #     /tmp/google-cloud-sdk/install.sh -q && \
+      #     /tmp/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin 
 
       # Step 3: Setup Google Cloud SDK
       - uses: google-github-actions/setup-gcloud@v2
+
+      # ✅ FIX: install plugin
+      - name: Install GKE auth plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin --quiet
 
       # Step 4: Configure Docker to use Google Cloud's Container Registry
       - name: Configure Docker for GCR
@@ -133,5 +138,6 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           echo "Deploying to Kubernetes..."
+          # kubectl set image deployment/backstage backstage=***-docker.pkg.dev/***/backstage-from-scatch-demo/backstage:268a18b1993e3b9526e538c4c1e24e1082836dc7 || kubectl apply -f k8s/
           echo "kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/"
           kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/
