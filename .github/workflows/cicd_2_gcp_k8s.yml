@@ -1,9 +1,7 @@
 
 # This workflow runs a set of yarn commands to compile, test and build a backstage application 
 name: ci-cd to k8s
-env:
-  REPO: backstage-from-scatch-demo
-  IMAGE: backstage
+
 permissions:
   id-token: write
   contents: read
@@ -16,6 +14,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  REPO: backstage-from-scatch-demo
+  IMAGE: backstage
 
 
 
