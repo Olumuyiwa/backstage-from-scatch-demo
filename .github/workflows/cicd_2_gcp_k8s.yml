@@ -61,6 +61,9 @@ jobs:
       # Step 1: Checkout the code from the repository
       - uses: actions/checkout@v4
 
+      - name: Build the application
+        run: yarn build:all
+
       # Step 2: Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
