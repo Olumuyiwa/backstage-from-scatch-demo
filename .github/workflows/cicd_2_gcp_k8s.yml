@@ -67,17 +67,17 @@ jobs:
       # Step 4: Configure Docker to use Google Cloud's Container Registry
       - name: Configure Docker for GCR
         run: |
-          gcloud auth configure-docker $REGION-docker.pkg.dev
+          gcloud auth configure-docker ${{ secrets.GKE_REGION }}-docker.pkg.dev
 
       # Step 5: Build the Docker image for your application
       - name: Build image
         run: |
-          docker build -t $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
+          docker build -t ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
 
       # Step 6: Push the built Docker image to Google Container Registry
       - name: Push image to GCR
         run: |
-          docker push $REGION-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
+          docker push ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
 
       # Step 7: Get credentials for the GKE cluster to manage deployments
       - name: Get GKE Cluster credentials
