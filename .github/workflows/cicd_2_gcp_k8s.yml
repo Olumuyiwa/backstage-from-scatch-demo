@@ -138,6 +138,7 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           echo "Deploying to Kubernetes..."
-          # kubectl set image deployment/backstage backstage=***-docker.pkg.dev/***/backstage-from-scatch-demo/backstage:268a18b1993e3b9526e538c4c1e24e1082836dc7 || kubectl apply -f k8s/
-          echo "kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/"
-          kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/
+          kubectl apply -f k8s/
+          kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
+          kubectl get pods -n backstage
+          kubectl describe pod -n backstage

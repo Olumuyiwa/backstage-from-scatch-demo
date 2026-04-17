@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: backstage
-          image: gcr.io/PROJECT_ID/backstage:latest
+          image: nginx # Placeholder, will be overridden by kubectl set image
           ports:
             - containerPort: 7007
