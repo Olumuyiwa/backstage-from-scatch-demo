@@ -132,5 +132,6 @@ jobs:
       # Step 8: Deploy the new Docker image to Kubernetes
       - name: Deploy to Kubernetes
         run: |
-          kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || \
-          kubectl apply -f k8s/
+          echo "Deploying to Kubernetes..."
+          echo "kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/"
+          kubectl set image deployment/backstage backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA || kubectl apply -f k8s/
