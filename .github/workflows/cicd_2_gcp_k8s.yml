@@ -42,9 +42,14 @@ jobs:
       - name: Run Unit Tests
         run: yarn test:all
 
-    
       - name: Build the application
         run: yarn build:all
+
+      # Ensure that the generated files are in the right place before the deploy step
+      - name: Ensure Build Artifacts are Present
+        run: |
+          ls packages/backend/dist/
+          echo "Artifacts: skeleton.tar.gz and bundle.tar.gz should be present"
 # =========================
 # CD — DEPLOY TO GCP VM
 # =========================
@@ -74,6 +79,9 @@ jobs:
       # Step 5: Build the Docker image for your application
       - name: Build image
         run: |
+          # Check if the files are there before the build
+          ls packages/backend/dist/
+          echo "Building Docker image..."
           echo "docker build -t ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA -f packages/backend/Dockerfile ." 
           docker build -t ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA -f packages/backend/Dockerfile .
 
