@@ -145,5 +145,8 @@ jobs:
           backstage=${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA \
           -n backstage
 
+          echo "kubectl get pods -n backstage..."
           kubectl get pods -n backstage
+
+          echo "kubectl describe pod -n backstage..."
           kubectl describe pod -n backstage
