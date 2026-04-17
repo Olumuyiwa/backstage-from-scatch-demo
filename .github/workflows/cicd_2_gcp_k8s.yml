@@ -74,7 +74,7 @@ jobs:
       # Step 5: Build the Docker image for your application
       - name: Build image
         run: |
-          docker build -t ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA .
+          docker build -t ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA -f packages/backend/Dockerfile .
 
       # Step 6: Push the built Docker image to Google Container Registry
       - name: Push image to GCR
