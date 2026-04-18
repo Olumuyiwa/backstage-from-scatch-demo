@@ -1,4 +1,4 @@
-
+# cicd_2_gcp_k8s.yml - This GitHub Actions workflow is designed to automate the CI/CD process for a Backstage application. It consists of two main jobs: "build" and "deploy". The "build" job compiles the TypeScript code, runs unit tests, and builds the application. The "deploy" job authenticates with Google Cloud, builds a Docker image, pushes it to Google Container Registry, and deploys it to a Kubernetes cluster on GCP. The workflow is triggered on pushes and pull requests to the "k8s" branch.
 # This workflow runs a set of yarn commands to compile, test and build a backstage application 
 name: ci-cd to k8s
 
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code from the repository
+      - name: Checkout Code
       - uses: actions/checkout@v4
 
       - name: Set Up Node.js
@@ -71,35 +71,24 @@ jobs:
 
       - name: Build the application
         run: yarn build:all
-
-      # Step 2: Authenticate to Google Cloud
+ 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      # # Step 3: Install gke-gcloud-auth-plugin
-      # - name: Install gke-gcloud-auth-plugin
-      #   run: |
-      #     curl -sSL https://dl.google.com/cloudsdk/release/google-cloud-sdk.tar.gz | tar xz -C /tmp && \
-      #     /tmp/google-cloud-sdk/install.sh -q && \
-      #     /tmp/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin 
-
-      # Step 3: Setup Google Cloud SDK
+      - name: Set up gcloud CLI
       - uses: google-github-actions/setup-gcloud@v2
 
-      # ✅ FIX: install plugin
       - name: Install GKE auth plugin
         run: |
           gcloud components install gke-gcloud-auth-plugin --quiet
 
-      # Step 4: Configure Docker to use Google Cloud's Container Registry
       - name: Configure Docker for GCR
         run: |
           gcloud auth configure-docker ${{ secrets.GKE_REGION }}-docker.pkg.dev
 
-      # Step 5: Build the Docker image for your application
       - name: Build image
         run: |
           # Check if the files are there before the build
@@ -123,19 +112,14 @@ jobs:
         run: |
           docker push ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
 
-      # # Step 6: Push the built Docker image to Google Container Registry
-      # - name: Push image to GCR
-      #   run: |
-      #     docker push ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
 
-      # Step 7: Get credentials for the GKE cluster to manage deployments
       - name: Get GKE Cluster credentials
         run: |
           gcloud container clusters get-credentials \
           ${{ secrets.GKE_CLUSTER }} \
           --region ${{ secrets.GKE_REGION }}
 
-      # Step 8: Deploy the new Docker image to Kubernetes
+
       - name: Deploy to Kubernetes
         run: |
           echo "Deploying to Kubernetes..."
