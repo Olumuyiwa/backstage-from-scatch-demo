@@ -16,7 +16,7 @@ backend:
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen:
     host: 0.0.0.0
-    port: 7007
+    port: ':8080'
   # listen: ':7007'
   # config options: https://node-postgres.com/apis/client
   database:
