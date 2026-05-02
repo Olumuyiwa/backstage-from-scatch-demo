@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Set Up Node.js
         uses: actions/setup-node@v4
@@ -79,7 +79,7 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Set up gcloud CLI
-      - uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Install GKE auth plugin
         run: |
@@ -108,7 +108,7 @@ jobs:
             --location=${{ secrets.GKE_REGION }} \
             --project=${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Push image to GCR
+      - name: Push image to Artifact Registry
         run: |
           docker push ${{ secrets.GKE_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/$REPO/$IMAGE:$GITHUB_SHA
 
@@ -117,6 +117,7 @@ jobs:
           gcloud services enable \
             run.googleapis.com \
             cloudbuild.googleapis.com \
+            artifactregistry.googleapis.com \
             containerregistry.googleapis.com  # Enable the necessary APIs for Cloud Run, Cloud Build, and Container Registry
 
       - name: Deploy to Cloud Run

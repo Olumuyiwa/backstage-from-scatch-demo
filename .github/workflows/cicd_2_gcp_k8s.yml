@@ -59,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Set Up Node.js
         uses: actions/setup-node@v4
@@ -79,7 +79,7 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Set up gcloud CLI
-      - uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Install GKE auth plugin
         run: |
