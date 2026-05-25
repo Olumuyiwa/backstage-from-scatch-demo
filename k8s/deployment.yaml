@@ -15,6 +15,24 @@ spec:
     spec:
       containers:
         - name: backstage
-          image: nginx # Placeholder, will be overridden by kubectl set image
+          image: backstage:local
+          imagePullPolicy: Never
           ports:
             - containerPort: 7007
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 7007
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 7007
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          env:
+            - name: APP_CONFIG_app_baseUrl
+              value: http://192.168.49.2:30007
+            - name: APP_CONFIG_backend_baseUrl
+              value: http://192.168.49.2:30007

@@ -1,8 +1,10 @@
 # app-config.production.yaml - This file is intended for production use, and will override the default app-config.yaml when NODE_ENV=production
 app:
   # Should be the same as backend.baseUrl when using the `app-backend` plugin.
-  baseUrl: https://backstage-483068851528.us-west1.run.app
+  # baseUrl: https://backstage-483068851528.us-west1.run.app
   # baseUrl: http://localhost:7007
+  # baseUrl: https://127.0.0.1:57571
+  baseUrl: http://192.168.49.2:30007
 
 backend:
   # Note that the baseUrl should be the URL that the browser and other clients
@@ -11,12 +13,16 @@ backend:
   # callers. When its value is "http://localhost:7007", it's strictly private
   # and can't be reached by others.
   # baseUrl: http://localhost:7007
-  baseUrl: https://backstage-483068851528.us-west1.run.app/
+
+  baseUrl: http://192.168.49.2:30007
+
+  # baseUrl: https://backstage-483068851528.us-west1.run.app/
+  # baseUrl: https://127.0.0.1:57571
   # The listener can also be expressed as a single <host>:<port> string. In this case we bind to
   # all interfaces, the most permissive setting. The right value depends on your specific deployment.
   listen:
     # host: 0.0.0.0
-    port: 8080
+    port: 7007
   # listen: ':7007'
   # config options: https://node-postgres.com/apis/client
   database:

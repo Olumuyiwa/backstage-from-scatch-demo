@@ -1,13 +1,14 @@
-# service.yaml (Networking Layer)
+# service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: backstage
   namespace: backstage
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: backstage
   ports:
     - port: 80
       targetPort: 7007
+      nodePort: 30007
