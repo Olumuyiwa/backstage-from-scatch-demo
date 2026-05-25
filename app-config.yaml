@@ -2,8 +2,8 @@
 app:
   title: Scaffolded Backstage App
   # baseUrl: http://34.53.95.134
-  baseUrl: http://192.168.49.2:30007
-  # baseUrl: http://0.0.0.0:3000
+  # baseUrl: http://192.168.49.2:30007
+  baseUrl: http://localhost:3000
 
 organization:
   name: My Test Organization
@@ -16,7 +16,8 @@ backend:
   #   keys:
   #     - secret: ${BACKEND_SECRET}
   # baseUrl: http://34.53.95.134
-  baseUrl: http://0.0.0.0:7007
+  baseUrl: http://localhost:7007
+  # baseUrl: http://192.168.49.27007
   listen:
     port: 7007
     # Uncomment the following host directive to bind to specific interfaces
@@ -27,7 +28,8 @@ backend:
     # Content-Security-Policy directives follow the Helmet format: https://helmetjs.github.io/#reference
     # Default Helmet Content-Security-Policy values can be removed by setting the key to false
   cors:
-    origin: "*"
+    # origin: "*"
+    origin: http://localhost:3000
     # origin: http://0.0.0.0:3000
     # origin: http://34.53.95.134
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
@@ -142,4 +144,4 @@ kubernetes:
 # see https://backstage.io/docs/permissions/getting-started for more on the permission framework
 permission:
   # setting this to `false` will disable permissions
-  enabled: true
+  enabled: false

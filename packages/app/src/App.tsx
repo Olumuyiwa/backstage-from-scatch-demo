@@ -1,3 +1,5 @@
+// ## packages/app/src/App.tsx
+
 import { Navigate, Route } from 'react-router-dom';
 import { apiDocsPlugin, ApiExplorerPage } from '@backstage/plugin-api-docs';
 import {
@@ -31,15 +33,28 @@ import {
   SignInPage,
 } from '@backstage/core-components';
 import { createApp } from '@backstage/app-defaults';
-import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
+import { AppRouter, FlatRoutes, AlertApiForwarder } from '@backstage/core-app-api';
+import { createApiFactory, createApiRef } from '@backstage/core-plugin-api'; // ← Using createApiRef to target the exact ID
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
 import { NotificationsPage } from '@backstage/plugin-notifications';
 import { SignalsDisplay } from '@backstage/plugin-signals';
 
+// Forcefully create an API reference that binds directly to the 'core.toast' string ID
+const modernToastApiRef = createApiRef<any>({
+  id: 'core.toast',
+});
+
 const app = createApp({
-  apis,
+  apis: [
+    ...apis,
+    createApiFactory({
+      api: modernToastApiRef, // Directly map our forwarder to the exact string ID requested
+      deps: {},
+      factory: () => new AlertApiForwarder(),
+    }),
+  ],
   bindRoutes({ bind }) {
     bind(catalogPlugin.externalRoutes, {
       createComponent: scaffolderPlugin.routes.root,
